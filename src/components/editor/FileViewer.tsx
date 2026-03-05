@@ -140,7 +140,7 @@ export default function FileViewer() {
             {Array.from({ length: lineCount }, (_, i) => (
               <div key={i} style={{
                 paddingRight: "10px",
-                lineHeight: 1.5,
+                lineHeight: "20px",
                 fontSize: "var(--font-size-base)",
                 fontFamily: "var(--font-mono)",
                 color: "var(--color-text-faint)",
@@ -166,7 +166,7 @@ export default function FileViewer() {
                 fontFamily: "var(--font-mono)",
                 fontSize: "var(--font-size-base)",
                 color: "var(--color-text-secondary)",
-                lineHeight: 1.5,
+                lineHeight: "20px",
                 resize: "none",
                 padding: "10px 14px",
                 overflowY: "auto",
@@ -189,7 +189,7 @@ export default function FileViewer() {
                 padding: "10px 14px",
                 fontSize: "var(--font-size-base)",
                 fontFamily: "var(--font-mono)",
-                lineHeight: 1.5,
+                lineHeight: "20px",
                 cursor: "text",
               }}
             />
@@ -211,7 +211,7 @@ export default function FileViewer() {
             >
               {activeFile.content.split("\n").map((line, i) => (
                 <div key={i} style={{
-                  lineHeight: 1.5,
+                  lineHeight: "20px",
                   fontSize: "var(--font-size-base)",
                   fontFamily: "var(--font-mono)",
                   color: "var(--color-text-secondary)",

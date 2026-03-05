@@ -1,4 +1,5 @@
 import { useSettingsStore, type PanelPreset } from "@/stores/settingsStore";
+import { THEMES } from "@/lib/themes";
 import RetentionSlider from "./RetentionSlider";
 
 export default function SettingsDropdown() {
@@ -24,47 +25,69 @@ export default function SettingsDropdown() {
         Settings
       </div>
 
-      {/* Theme */}
+      {/* Theme picker */}
       <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 6,
         marginBottom: 14,
-        padding: "8px 10px",
-        borderRadius: "var(--radius-lg)",
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
+        maxHeight: 160,
+        overflowY: "auto",
+        paddingRight: 2,
       }}>
-        <span style={{
-          fontSize: "11px",
-          color: "var(--color-text-secondary)",
-          fontFamily: "var(--font-display)",
-        }}>
-          Theme
-        </span>
-        <div style={{ display: "flex", gap: 3 }}>
-          {(["dark", "light"] as const).map((t) => (
+        {THEMES.map((t) => {
+          const isActive = theme === t.id;
+          return (
             <button
-              key={t}
-              onClick={() => setTheme(t)}
+              key={t.id}
+              onClick={() => setTheme(t.id)}
               style={{
-                padding: "3px 10px",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 8px",
                 borderRadius: "var(--radius-md)",
-                border: `1px solid ${theme === t ? "var(--color-accent-border)" : "transparent"}`,
-                background: theme === t ? "var(--color-accent-dim)" : "transparent",
-                color: theme === t ? "var(--color-accent-light)" : "var(--color-text-muted)",
+                border: `1.5px solid ${isActive ? t.preview.accent : "var(--color-border)"}`,
+                background: isActive ? "var(--color-accent-dim)" : "var(--color-surface)",
+                cursor: "pointer",
+                transition: "all var(--transition-fast)",
+              }}
+            >
+              {/* Swatch */}
+              <div style={{
+                width: 20,
+                height: 20,
+                borderRadius: "var(--radius-sm)",
+                background: t.preview.bg,
+                border: "1px solid rgba(255,255,255,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <div style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: t.preview.accent,
+                }} />
+              </div>
+              {/* Nome */}
+              <span style={{
                 fontSize: "10px",
                 fontFamily: "var(--font-display)",
                 fontWeight: 600,
-                cursor: "pointer",
-                transition: "all var(--transition-fast)",
-                textTransform: "capitalize",
-              }}
-            >
-              {t}
+                color: isActive ? "var(--color-text)" : "var(--color-text-secondary)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                textAlign: "left",
+              }}>
+                {t.name}
+              </span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {/* Retention */}

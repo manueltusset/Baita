@@ -141,18 +141,63 @@ export default function App() {
           }}
         >
           <div style={{
-            width: "min(600px, 90%)",
-            padding: "12px 16px",
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
+            width: "min(560px, 90%)",
+            background: "var(--glass-bg)",
+            backdropFilter: "var(--glass-blur)",
+            WebkitBackdropFilter: "var(--glass-blur)",
+            border: "1px solid var(--glass-border)",
             borderRadius: "var(--radius-xl)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-            color: "var(--color-text-muted)",
-            fontSize: "var(--font-size-sm)",
-            fontFamily: "var(--font-mono)",
-            textAlign: "center",
+            boxShadow: "var(--shadow-lg)",
+            animation: "scaleIn 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+            overflow: "hidden",
           }}>
-            Command Palette (coming soon)
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "12px 16px",
+            }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: "var(--color-text-muted)", lineHeight: 1 }}
+              >
+                search
+              </span>
+              <input
+                autoFocus
+                placeholder="Type a command..."
+                onKeyDown={(e) => { if (e.key === "Escape") toggleCommandPalette(); }}
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  color: "var(--color-text)",
+                  fontSize: "var(--font-size-md)",
+                  fontFamily: "var(--font-mono)",
+                }}
+              />
+              <span style={{
+                fontSize: "10px",
+                fontFamily: "var(--font-mono)",
+                color: "var(--color-text-faint)",
+                padding: "2px 6px",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--color-border)",
+              }}>
+                ESC
+              </span>
+            </div>
+            <div style={{
+              borderTop: "1px solid var(--color-border)",
+              padding: "12px 16px",
+              fontSize: "var(--font-size-sm)",
+              color: "var(--color-text-faint)",
+              fontFamily: "var(--font-mono)",
+              textAlign: "center",
+            }}>
+              Start typing to search commands...
+            </div>
           </div>
         </div>
       )}

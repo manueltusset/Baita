@@ -265,7 +265,7 @@ button:focus-visible {
 .shiki-container code {
   font-family: var(--font-mono) !important;
   font-size: var(--font-size-base) !important;
-  line-height: 1.5 !important;
+  line-height: 20px !important;
 }
 
 .shiki-container .line {

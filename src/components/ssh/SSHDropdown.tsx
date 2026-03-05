@@ -39,6 +39,31 @@ export default function SSHDropdown({ onClose }: SSHDropdownProps) {
     ? profiles.find((p) => p.id === activeSSHProfileId)
     : null;
 
+  // Modo formulario inline
+  if (connectDialogOpen) {
+    return (
+      <SSHConnectDialog
+        inline
+        onClose={toggleConnectDialog}
+        onConnect={(data) => {
+          const id = `ssh-${Date.now()}`;
+          addSSHProfile({
+            id,
+            name: data.name,
+            host: data.host,
+            port: data.port,
+            username: data.username,
+            authMethod: data.authMethod,
+            keyPath: data.keyPath,
+          });
+          connectSSH(id);
+          toggleConnectDialog();
+          onClose();
+        }}
+      />
+    );
+  }
+
   return (
     <>
       {/* Header */}
@@ -159,30 +184,6 @@ export default function SSHDropdown({ onClose }: SSHDropdownProps) {
         <MaterialIcon name="add" size={14} />
         New Connection
       </button>
-
-      {/* Dialog de conexao (overlay fixo) */}
-      {connectDialogOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
-          <SSHConnectDialog
-            onClose={toggleConnectDialog}
-            onConnect={(data) => {
-              const id = `ssh-${Date.now()}`;
-              addSSHProfile({
-                id,
-                name: data.name,
-                host: data.host,
-                port: data.port,
-                username: data.username,
-                authMethod: data.authMethod,
-                keyPath: data.keyPath,
-              });
-              connectSSH(id);
-              toggleConnectDialog();
-              onClose();
-            }}
-          />
-        </div>
-      )}
     </>
   );
 }

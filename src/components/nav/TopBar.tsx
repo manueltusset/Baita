@@ -14,7 +14,7 @@ type DropdownId = "settings" | "ssh" | "metrics" | null;
 export default function TopBar() {
   const { workspaces, activeWorkspaceId, setActiveWorkspace, addWorkspace, removeWorkspace } =
     useWorkspaceStore();
-  const { toggleSidebar, toggleReviewPanel, toggleCommandPalette } = useUIStore();
+  const { toggleSidebar, toggleReviewPanel, toggleCommandPalette, sidebarOpen, reviewPanelOpen } = useUIStore();
   const settingsOpen = useUIStore((s) => s.settingsOpen);
   const { latestCpu, latestMemPct, latestDiskPct } = useMetricsStore();
 
@@ -117,8 +117,8 @@ export default function TopBar() {
         {/* Acoes */}
         <div style={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconBtn icon="search" onClick={() => toggleCommandPalette()} title="Search (Ctrl+K)" />
-          <IconBtn icon="folder" onClick={() => toggleSidebar()} title="Toggle sidebar" />
-          <IconBtn icon="compare" onClick={() => toggleReviewPanel()} title="Code review" />
+          <IconBtn icon="folder" onClick={() => toggleSidebar()} title="Toggle sidebar" active={sidebarOpen} />
+          <IconBtn icon="compare" onClick={() => toggleReviewPanel()} title="Code review" active={reviewPanelOpen} />
           <IconBtn
             icon="language"
             onClick={(e) => toggleDropdown("ssh", e)}

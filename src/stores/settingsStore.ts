@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { RETENTION_DEFAULTS } from "@/lib/constants";
-
-type Theme = "dark" | "light";
+import { THEME_MAP, DEFAULT_THEME_ID } from "@/lib/themes";
 
 export interface PanelPreset {
   command?: string;
@@ -15,7 +14,7 @@ export interface DefaultLayout {
 const DEFAULT_LAYOUT: DefaultLayout = { panels: [{}], splitDirection: "horizontal" };
 
 interface SettingsState {
-  theme: Theme;
+  theme: string;
   outputDays: number;
   commandDays: number;
   sessionDays: number;
@@ -24,7 +23,7 @@ interface SettingsState {
   dbUsedMb: number;
   defaultLayout: DefaultLayout;
 
-  setTheme: (t: Theme) => void;
+  setTheme: (id: string) => void;
   setOutputDays: (v: number) => void;
   setCommandDays: (v: number) => void;
   setSessionDays: (v: number) => void;
@@ -32,8 +31,13 @@ interface SettingsState {
   setDefaultLayout: (layout: DefaultLayout) => void;
 }
 
-function applyTheme(theme: Theme) {
-  document.documentElement.setAttribute("data-theme", theme);
+function applyTheme(id: string) {
+  const theme = THEME_MAP[id];
+  if (!theme) return;
+  const root = document.documentElement;
+  for (const [prop, value] of Object.entries(theme.vars)) {
+    root.style.setProperty(prop, value);
+  }
 }
 
 function loadDefaultLayout(): DefaultLayout {
@@ -44,7 +48,15 @@ function loadDefaultLayout(): DefaultLayout {
   return DEFAULT_LAYOUT;
 }
 
-const savedTheme = (localStorage.getItem("baita-theme") as Theme) || "dark";
+// Migrar valor antigo "dark"/"light" para novo ID
+function migrateThemeId(stored: string | null): string {
+  if (stored === "dark") return "baita-dark";
+  if (stored === "light") return "baita-light";
+  if (stored && THEME_MAP[stored]) return stored;
+  return DEFAULT_THEME_ID;
+}
+
+const savedTheme = migrateThemeId(localStorage.getItem("baita-theme"));
 applyTheme(savedTheme);
 
 export const useSettingsStore = create<SettingsState>((set) => ({
@@ -53,10 +65,10 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   dbUsedMb: 0,
   defaultLayout: loadDefaultLayout(),
 
-  setTheme: (t) => {
-    applyTheme(t);
-    localStorage.setItem("baita-theme", t);
-    set({ theme: t });
+  setTheme: (id) => {
+    applyTheme(id);
+    localStorage.setItem("baita-theme", id);
+    set({ theme: id });
   },
   setOutputDays: (v) => set({ outputDays: v }),
   setCommandDays: (v) => set({ commandDays: v }),
