@@ -1,0 +1,196 @@
+:root {
+  /* Background */
+  --color-bg: #0a0a0a;
+  --color-bg-elevated: #141418;
+
+  /* Surfaces */
+  --color-surface: rgba(255, 255, 255, 0.04);
+  --color-surface-hover: rgba(255, 255, 255, 0.06);
+  --color-surface-active: rgba(255, 255, 255, 0.08);
+  --color-border: rgba(255, 255, 255, 0.05);
+  --color-border-hover: rgba(255, 255, 255, 0.08);
+  --color-border-focus: rgba(236, 91, 19, 0.5);
+
+  /* Accent: Orange */
+  --color-accent: #ec5b13;
+  --color-accent-light: #f47a3e;
+  --color-accent-lighter: #f9a06a;
+  --color-accent-dim: rgba(236, 91, 19, 0.15);
+  --color-accent-border: rgba(236, 91, 19, 0.25);
+  --color-accent-glow: rgba(236, 91, 19, 0.12);
+
+  /* Status */
+  --color-success: #4ade80;
+  --color-error: #f87171;
+  --color-warning: #fbbf24;
+  --color-info: #60a5fa;
+
+  /* Text */
+  --color-text: rgba(255, 255, 255, 0.92);
+  --color-text-secondary: rgba(255, 255, 255, 0.55);
+  --color-text-muted: rgba(255, 255, 255, 0.35);
+  --color-text-faint: rgba(255, 255, 255, 0.20);
+
+  /* Typography */
+  --font-mono: "JetBrains Mono NF", "Space Mono", "SF Mono", monospace;
+  --font-display: "Public Sans", "Inter", system-ui, sans-serif;
+  --font-size-xs: 10.5px;
+  --font-size-sm: 11.5px;
+  --font-size-base: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+
+  /* Spacing */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-10: 20px;
+  --space-12: 24px;
+  --space-16: 32px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+  --radius-nav: 9999px;
+
+  /* Glass morphism */
+  --glass-bg: rgba(25, 25, 25, 0.7);
+  --glass-bg-elevated: rgba(30, 30, 33, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-highlight: rgba(255, 255, 255, 0.15);
+  --glass-shine: rgba(255, 255, 255, 0.04);
+  --glass-glow-accent: rgba(236, 91, 19, 0.15);
+  --glass-blur: blur(20px) saturate(1.4);
+  --glass-blur-elevated: blur(12px) saturate(1.2);
+  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --glass-shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* Layout */
+  --titlebar-height: 56px;
+  --titlebar-bg: rgba(0, 0, 0, 0.3);
+  --sidebar-width: 288px;
+  --sidebar-width-compact: 220px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-smooth: 0.25s ease;
+  --transition-spring: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+  /* Panel backgrounds */
+  --panel-bg: transparent;
+  --panel-header-bg: rgba(0, 0, 0, 0.15);
+  --panel-border: rgba(255, 255, 255, 0.04);
+
+  /* Input */
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-bg-focus: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.08);
+  --input-border-focus: rgba(236, 91, 19, 0.5);
+
+  /* Diff colors */
+  --diff-add-bg: rgba(74, 222, 128, 0.05);
+  --diff-add-border: rgba(74, 222, 128, 0.35);
+  --diff-add-text: rgba(74, 222, 128, 0.75);
+  --diff-remove-bg: rgba(248, 113, 113, 0.05);
+  --diff-remove-border: rgba(248, 113, 113, 0.35);
+  --diff-remove-text: rgba(248, 113, 113, 0.7);
+  --diff-header-bg: rgba(96, 165, 250, 0.05);
+  --diff-line-number: var(--color-text-faint);
+
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.55);
+  --overlay-blur: blur(8px);
+
+  /* Blob gradients */
+  --blob-accent: rgba(236, 91, 19, 0.06);
+  --blob-cool: rgba(59, 130, 246, 0.04);
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --color-bg: #fafafa;
+  --color-bg-elevated: #ffffff;
+  --color-surface: rgba(0, 0, 0, 0.03);
+  --color-surface-hover: rgba(0, 0, 0, 0.05);
+  --color-surface-active: rgba(0, 0, 0, 0.07);
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(0, 0, 0, 0.12);
+  --color-border-focus: rgba(200, 70, 10, 0.5);
+
+  --color-accent: #d94f0e;
+  --color-accent-light: #ec5b13;
+  --color-accent-lighter: #f47a3e;
+  --color-accent-dim: rgba(217, 79, 14, 0.08);
+  --color-accent-border: rgba(217, 79, 14, 0.18);
+  --color-accent-glow: rgba(217, 79, 14, 0.06);
+
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+  --color-info: #2563eb;
+
+  --color-text: rgba(0, 0, 0, 0.87);
+  --color-text-secondary: rgba(0, 0, 0, 0.55);
+  --color-text-muted: rgba(0, 0, 0, 0.38);
+  --color-text-faint: rgba(0, 0, 0, 0.18);
+
+  --glass-bg: rgba(241, 245, 249, 0.55);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.50);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-highlight: rgba(0, 0, 0, 0.10);
+  --glass-shine: rgba(255, 255, 255, 0.6);
+  --glass-glow-accent: rgba(217, 79, 14, 0.12);
+  --glass-blur: blur(20px) saturate(1.4);
+  --glass-blur-elevated: blur(12px) saturate(1.2);
+  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --glass-shadow-elevated: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  --titlebar-bg: rgba(255, 255, 255, 0.6);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12);
+
+  --panel-bg: rgba(255, 255, 255, 0.5);
+  --panel-header-bg: rgba(0, 0, 0, 0.02);
+  --panel-border: rgba(0, 0, 0, 0.06);
+
+  --input-bg: rgba(0, 0, 0, 0.03);
+  --input-bg-focus: rgba(0, 0, 0, 0.04);
+  --input-border: rgba(0, 0, 0, 0.1);
+  --input-border-focus: rgba(200, 70, 10, 0.4);
+
+  --diff-add-bg: rgba(22, 163, 74, 0.06);
+  --diff-add-border: rgba(22, 163, 74, 0.3);
+  --diff-add-text: rgba(22, 163, 74, 0.8);
+  --diff-remove-bg: rgba(220, 38, 38, 0.06);
+  --diff-remove-border: rgba(220, 38, 38, 0.3);
+  --diff-remove-text: rgba(220, 38, 38, 0.75);
+  --diff-header-bg: rgba(37, 99, 235, 0.05);
+  --diff-line-number: var(--color-text-faint);
+
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+  --overlay-blur: blur(8px);
+
+  --blob-accent: rgba(217, 79, 14, 0.04);
+  --blob-cool: rgba(37, 99, 235, 0.03);
+}
