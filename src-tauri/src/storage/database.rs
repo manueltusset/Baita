@@ -72,10 +72,42 @@ impl Database {
                 duration_ms     INTEGER,
                 line_count      INTEGER,
                 pinned          INTEGER DEFAULT 0,
-                created_at      INTEGER NOT NULL,
-                FOREIGN KEY (tab_id) REFERENCES tabs(id)
+                created_at      INTEGER NOT NULL
             )"
         ).execute(&self.pool).await?;
+
+        // Migration: remove FK constraint de bancos criados antes
+        sqlx::query(
+            "CREATE TABLE IF NOT EXISTS _blocks_migrated (v INTEGER)"
+        ).execute(&self.pool).await?;
+        let migrated = sqlx::query("SELECT v FROM _blocks_migrated LIMIT 1")
+            .fetch_optional(&self.pool).await?;
+        if migrated.is_none() {
+            // Recria tabela sem FK
+            sqlx::query("ALTER TABLE blocks RENAME TO blocks_old").execute(&self.pool).await.ok();
+            sqlx::query(
+                "CREATE TABLE IF NOT EXISTS blocks (
+                    id              TEXT PRIMARY KEY,
+                    tab_id          TEXT NOT NULL,
+                    command         TEXT NOT NULL,
+                    output          BLOB,
+                    output_purged   INTEGER DEFAULT 0,
+                    exit_code       INTEGER,
+                    cwd             TEXT,
+                    git_branch      TEXT,
+                    git_dirty       INTEGER DEFAULT 0,
+                    duration_ms     INTEGER,
+                    line_count      INTEGER,
+                    pinned          INTEGER DEFAULT 0,
+                    created_at      INTEGER NOT NULL
+                )"
+            ).execute(&self.pool).await?;
+            sqlx::query(
+                "INSERT INTO blocks SELECT * FROM blocks_old"
+            ).execute(&self.pool).await.ok();
+            sqlx::query("DROP TABLE IF EXISTS blocks_old").execute(&self.pool).await.ok();
+            sqlx::query("INSERT INTO _blocks_migrated VALUES (1)").execute(&self.pool).await?;
+        }
 
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS pty_buffer (
@@ -179,6 +211,33 @@ impl Database {
         .execute(&self.pool)
         .await?;
         Ok(())
+    }
+
+    pub async fn get_all_blocks(&self, limit: i64, offset: i64) -> Result<Vec<BlockMeta>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT id, tab_id, command, exit_code, cwd, git_branch, git_dirty, duration_ms, line_count, pinned, created_at
+             FROM blocks ORDER BY created_at DESC LIMIT ? OFFSET ?"
+        )
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let blocks = rows.iter().map(|r| BlockMeta {
+            id: r.get("id"),
+            tab_id: r.get("tab_id"),
+            command: r.get("command"),
+            exit_code: r.get("exit_code"),
+            cwd: r.get("cwd"),
+            git_branch: r.get("git_branch"),
+            git_dirty: r.get::<i32, _>("git_dirty") != 0,
+            duration_ms: r.get("duration_ms"),
+            line_count: r.get("line_count"),
+            pinned: r.get::<i32, _>("pinned") != 0,
+            created_at: r.get("created_at"),
+        }).collect();
+
+        Ok(blocks)
     }
 
     pub async fn get_blocks(&self, tab_id: &str, limit: i64, offset: i64) -> Result<Vec<BlockMeta>, sqlx::Error> {

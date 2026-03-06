@@ -41,17 +41,12 @@ impl PtySession {
         }
         cmd.cwd(cwd);
 
-        // Environment variables to detect CWD via OSC 7
         cmd.env("TERM", "xterm-256color");
         cmd.env("COLORTERM", "truecolor");
-        // Ativa OSC 7 built-in do macOS zsh (/etc/zshrc)
         cmd.env("TERM_PROGRAM", "Apple_Terminal");
 
-        // Bash nao tem hook automatico, injetar via PROMPT_COMMAND
-        if shell.contains("bash") {
-            cmd.env("PROMPT_COMMAND",
-                r#"printf '\e]7;file://%s%s\a' "$(hostname)" "$PWD""#);
-        }
+        // Shell integration: OSC 633 (historico) + OSC 7 (CWD tracking)
+        Self::setup_shell_integration(&mut cmd, shell);
 
         pair.slave
             .spawn_command(cmd)
@@ -100,6 +95,41 @@ impl PtySession {
         };
 
         Ok((session, output_rx))
+    }
+
+    /// Injects shell integration hooks (OSC 633 + OSC 7)
+    fn setup_shell_integration(cmd: &mut CommandBuilder, shell: &str) {
+        let init_script = include_str!("../../shell-integration/init.sh");
+
+        if shell.contains("zsh") {
+            let tmp = std::env::temp_dir().join("baita-zsh");
+            std::fs::create_dir_all(&tmp).ok();
+
+            let original_zdotdir = std::env::var("ZDOTDIR")
+                .unwrap_or_else(|_| {
+                    dirs::home_dir()
+                        .map(|p| p.to_string_lossy().to_string())
+                        .unwrap_or_else(|| "/".to_string())
+                });
+
+            let zshenv = format!(
+                "export ZDOTDIR=\"{}\"\n[[ -f \"$ZDOTDIR/.zshenv\" ]] && source \"$ZDOTDIR/.zshenv\"\n{}",
+                original_zdotdir, init_script
+            );
+            std::fs::write(tmp.join(".zshenv"), zshenv).ok();
+            cmd.env("ZDOTDIR", tmp.to_string_lossy().to_string());
+        } else if shell.contains("bash") {
+            // --rcfile substitui -l (bash -l ignora --rcfile)
+            // O rcfile sourca profile + bashrc + hooks
+            let tmp = std::env::temp_dir().join("baita-bash-init.sh");
+            let rcfile = format!(
+                "[[ -f ~/.bash_profile ]] && source ~/.bash_profile\n[[ -f ~/.bashrc ]] && source ~/.bashrc\n{}",
+                init_script
+            );
+            std::fs::write(&tmp, rcfile).ok();
+            cmd.arg("--rcfile");
+            cmd.arg(tmp.to_string_lossy().to_string());
+        }
     }
 
     /// Writes data to the PTY (user input)

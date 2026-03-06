@@ -5,6 +5,7 @@ import type {
   DbStats,
   SSHProfile,
   FileEntry,
+  BlockMeta,
 } from "./types";
 
 // -- PTY --
@@ -84,6 +85,24 @@ export async function getDbStats() {
 
 export async function runCleanupNow() {
   return invoke<{ purged: number; deleted: number }>("run_cleanup_now");
+}
+
+// -- History --
+
+export async function getBlocks(tabId?: string, limit = 50, offset = 0) {
+  return invoke<BlockMeta[]>("get_blocks", { tabId, limit, offset });
+}
+
+export async function searchBlocks(query: string, limit = 50) {
+  return invoke<BlockMeta[]>("search_blocks", { query, limit });
+}
+
+export async function pinBlock(blockId: string, pinned: boolean) {
+  return invoke("pin_block", { blockId, pinned });
+}
+
+export async function getBlockOutput(blockId: string) {
+  return invoke<string | null>("get_block_output", { blockId });
 }
 
 // -- System Metrics --

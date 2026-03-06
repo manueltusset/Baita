@@ -27,7 +27,7 @@ pub async fn tab_create(
             .map(|p| p.to_string_lossy().to_string())
             .unwrap_or_else(|| "/".to_string())
     });
-    let args: Vec<String> = shell_args.unwrap_or_default().iter().map(|a| {
+    let mut args: Vec<String> = shell_args.unwrap_or_default().iter().map(|a| {
         if a.starts_with("~/") {
             if let Some(home) = dirs::home_dir() {
                 return format!("{}/{}", home.display(), &a[2..]);
@@ -35,6 +35,13 @@ pub async fn tab_create(
         }
         a.clone()
     }).collect();
+
+    // Login shell para carregar PATH completo (~/.zprofile)
+    // Bash usa --rcfile (session.rs) que ja sourca ~/.bash_profile
+    if !args.contains(&"-l".to_string()) && shell.contains("zsh") {
+        args.insert(0, "-l".to_string());
+    }
+
     let tab_id = uuid::Uuid::now_v7().to_string();
 
     let mut manager = state.pty_manager.lock().await;
@@ -46,6 +53,7 @@ pub async fn tab_create(
         120,
         30,
         app_handle,
+        state.db.clone(),
     )?;
 
     eprintln!("[PTY] tab_create success, id={}", tab_id);
