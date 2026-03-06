@@ -1,3 +1,42 @@
+/// Extracts command text from OSC 633;E sequence
+/// Format: ESC ] 633 ; E ; command ST
+pub fn extract_osc633_command(data: &[u8]) -> Option<String> {
+    let text = String::from_utf8_lossy(data);
+    let marker = "\x1b]633;E;";
+    if let Some(start) = text.find(marker) {
+        let rest = &text[start + marker.len()..];
+        let end = rest.find('\x07')
+            .or_else(|| rest.find("\x1b\\"))
+            .unwrap_or(rest.len());
+        let cmd = rest[..end].trim();
+        if !cmd.is_empty() {
+            return Some(cmd.to_string());
+        }
+    }
+    None
+}
+
+/// Extracts exit code from OSC 633;D sequence
+/// Format: ESC ] 633 ; D ; exitCode ST
+pub fn extract_osc633_exit_code(data: &[u8]) -> Option<i32> {
+    let text = String::from_utf8_lossy(data);
+    let marker = "\x1b]633;D;";
+    if let Some(start) = text.find(marker) {
+        let rest = &text[start + marker.len()..];
+        let end = rest.find('\x07')
+            .or_else(|| rest.find("\x1b\\"))
+            .unwrap_or(rest.len());
+        return rest[..end].trim().parse::<i32>().ok();
+    }
+    None
+}
+
+/// Checks if OSC 633;C (command start) is present
+pub fn has_osc633_command_start(data: &[u8]) -> bool {
+    let text = String::from_utf8_lossy(data);
+    text.contains("\x1b]633;C\x07") || text.contains("\x1b]633;C\x1b\\")
+}
+
 /// Extracts CWD from OSC 7 escape sequence
 /// Format: ESC ] 7 ; file://hostname/path ST
 pub fn extract_osc7_cwd(data: &[u8]) -> Option<String> {

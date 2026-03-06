@@ -104,6 +104,20 @@ export interface Workspace {
   activeSSHProfileId: string | null;
 }
 
+export interface BlockMeta {
+  id: string;
+  tab_id: string;
+  command: string;
+  exit_code: number | null;
+  cwd: string | null;
+  git_branch: string | null;
+  git_dirty: boolean;
+  duration_ms: number | null;
+  line_count: number | null;
+  pinned: boolean;
+  created_at: number;
+}
+
 export interface RetentionConfig {
   outputRetentionDays: number;
   commandRetentionDays: number;

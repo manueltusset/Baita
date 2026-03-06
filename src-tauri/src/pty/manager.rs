@@ -1,6 +1,9 @@
 use crate::pty::session::PtySession;
 use crate::pty::cwd_tracker;
+use crate::storage::database::Database;
+use crate::storage::models::Block;
 use std::collections::{HashMap, VecDeque};
+use std::sync::Arc;
 use tauri::{AppHandle, Emitter};
 use tokio::sync::mpsc;
 use serde::Serialize;
@@ -88,6 +91,7 @@ impl PtyManager {
         cols: u16,
         rows: u16,
         app_handle: AppHandle,
+        db: Arc<Database>,
     ) -> Result<(), String> {
         let (session, output_rx) = PtySession::spawn(
             tab_id.clone(),
@@ -105,24 +109,31 @@ impl PtyManager {
             ring_buffer: RingBuffer::new(1000),
         });
 
-        // Task to read output and emit events (with 16ms batching)
         let handle = app_handle.clone();
         let tid = tab_id.clone();
+        let initial_cwd = cwd.to_string();
         tokio::spawn(async move {
-            Self::output_reader_loop(tid, output_rx, handle).await;
+            Self::output_reader_loop(tid, output_rx, handle, db, initial_cwd).await;
         });
 
         Ok(())
     }
 
-    /// Output reader loop with ~16ms batching
+    /// Output reader loop with ~16ms batching + command history capture
     async fn output_reader_loop(
         tab_id: String,
         mut rx: mpsc::UnboundedReceiver<Vec<u8>>,
         app_handle: AppHandle,
+        db: Arc<Database>,
+        initial_cwd: String,
     ) {
         let mut batch = Vec::with_capacity(16384);
         let batch_interval = tokio::time::Duration::from_millis(16);
+
+        // Estado para captura de comandos
+        let mut current_cwd = initial_cwd;
+        let mut pending_command: Option<String> = None;
+        let mut command_start: Option<std::time::Instant> = None;
 
         loop {
             match rx.recv().await {
@@ -130,27 +141,69 @@ impl PtyManager {
                 None => break,
             }
 
-            // Drain all available data
             while let Ok(data) = rx.try_recv() {
                 batch.extend_from_slice(&data);
             }
 
-            // Check OSC 7 for CWD
+            // OSC 633;E — comando capturado
+            if let Some(cmd) = cwd_tracker::extract_osc633_command(&batch) {
+                pending_command = Some(cmd);
+            }
+
+            // OSC 633;C — comando iniciou execucao
+            if cwd_tracker::has_osc633_command_start(&batch) {
+                command_start = Some(std::time::Instant::now());
+            }
+
+            // OSC 633;D — comando terminou
+            if let Some(exit_code) = cwd_tracker::extract_osc633_exit_code(&batch) {
+                if let Some(command) = pending_command.take() {
+                    let duration_ms = command_start.take()
+                        .map(|s| s.elapsed().as_millis() as i64);
+
+                    let block = Block {
+                        id: uuid::Uuid::now_v7().to_string(),
+                        tab_id: tab_id.clone(),
+                        command,
+                        output: None,
+                        output_purged: false,
+                        exit_code: Some(exit_code),
+                        cwd: Some(current_cwd.clone()),
+                        git_branch: None,
+                        git_dirty: false,
+                        duration_ms,
+                        line_count: None,
+                        pinned: false,
+                        created_at: std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs() as i64,
+                    };
+
+                    let db_ref = db.clone();
+                    tokio::spawn(async move {
+                        if let Err(e) = db_ref.insert_block(&block).await {
+                            eprintln!("[History] Failed to insert block: {}", e);
+                        }
+                    });
+                }
+            }
+
+            // OSC 7 — CWD tracking
             if let Some(cwd) = cwd_tracker::extract_osc7_cwd(&batch) {
+                current_cwd = cwd.clone();
                 let _ = app_handle.emit("cwd_changed", CwdChangedEvent {
                     tab_id: tab_id.clone(),
                     cwd,
                 });
             }
 
-            // Emit batch
             let _ = app_handle.emit("pty_output", PtyOutputEvent {
                 tab_id: tab_id.clone(),
                 data: batch.clone(),
             });
 
             batch.clear();
-
             tokio::time::sleep(batch_interval).await;
         }
     }

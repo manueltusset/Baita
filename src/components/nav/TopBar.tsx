@@ -8,8 +8,9 @@ import DropdownPopup from "./DropdownPopup";
 import SettingsDropdown from "@/components/settings/SettingsDropdown";
 import SSHDropdown from "@/components/ssh/SSHDropdown";
 import MetricsPopup from "@/components/metrics/MetricsPopup";
+import HistoryDropdown from "@/components/history/HistoryDropdown";
 
-type DropdownId = "settings" | "ssh" | "metrics" | null;
+type DropdownId = "settings" | "ssh" | "metrics" | "history" | null;
 
 export default function TopBar() {
   const { workspaces, activeWorkspaceId, setActiveWorkspace, addWorkspace, removeWorkspace } =
@@ -49,7 +50,7 @@ export default function TopBar() {
       const triggerRect = e.currentTarget.getBoundingClientRect();
       const triggerCenter = triggerRect.left + triggerRect.width / 2 - containerRect.left;
 
-      const w = name === "metrics" ? 320 : name === "ssh" ? 340 : 360;
+      const w = name === "metrics" ? 320 : name === "ssh" ? 340 : name === "history" ? 380 : 360;
       let left = triggerCenter - w / 2;
       if (left < 8) left = 8;
       if (left + w > containerRect.width - 8) left = containerRect.width - w - 8;
@@ -117,6 +118,13 @@ export default function TopBar() {
         {/* Acoes */}
         <div style={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconBtn icon="search" onClick={() => toggleCommandPalette()} title="Search (Ctrl+K)" />
+          <IconBtn
+            icon="history"
+            onClick={(e) => toggleDropdown("history", e)}
+            title="History"
+            active={activeDropdown === "history"}
+            isDropdownTrigger
+          />
           <IconBtn icon="folder" onClick={() => toggleSidebar()} title="Toggle sidebar" active={sidebarOpen} />
           <IconBtn icon="compare" onClick={() => toggleReviewPanel()} title="Code review" active={reviewPanelOpen} />
           <IconBtn
@@ -164,6 +172,7 @@ export default function TopBar() {
         <DropdownPopup onClose={closeDropdown} style={dropdownPos}>
           {activeDropdown === "settings" && <SettingsDropdown />}
           {activeDropdown === "ssh" && <SSHDropdown onClose={closeDropdown} />}
+          {activeDropdown === "history" && <HistoryDropdown />}
           {activeDropdown === "metrics" && <MetricsPopup />}
         </DropdownPopup>
       )}

@@ -74,6 +74,11 @@ pub fn run() {
             commands::ssh_list_profiles,
             commands::ssh_save_profile,
             commands::ssh_delete_profile,
+            // History
+            commands::get_blocks,
+            commands::search_blocks,
+            commands::pin_block,
+            commands::get_block_output,
             // System metrics
             commands::get_system_metrics,
         ])

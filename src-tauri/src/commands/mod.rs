@@ -5,6 +5,7 @@ pub mod settings;
 pub mod ssh;
 pub mod lifecycle;
 pub mod sysinfo;
+pub mod history;
 
 // Re-exports all commands
 pub use pty::*;
@@ -14,3 +15,4 @@ pub use settings::*;
 pub use ssh::*;
 pub use lifecycle::*;
 pub use sysinfo::*;
+pub use history::*;
