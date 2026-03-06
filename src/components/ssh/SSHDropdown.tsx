@@ -138,9 +138,9 @@ export default function SSHDropdown({ onClose }: SSHDropdownProps) {
 
       {/* Lista de profiles */}
       <div style={{ maxHeight: 200, overflow: "auto", marginBottom: 10 }}>
-        {profiles.length > 0 ? (
+        {profiles.filter((p) => p.id !== activeSSHProfileId).length > 0 ? (
           <SSHProfileList
-            profiles={profiles}
+            profiles={profiles.filter((p) => p.id !== activeSSHProfileId)}
             activeSessionId={activeSSHProfileId}
             onConnect={(profile) => connectSSH(profile.id)}
             onRemove={(id) => removeSSHProfile(id)}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { gitStatus, sshExec } from "@/lib/tauri";
 import type { SSHProfile } from "@/lib/types";
 
@@ -50,39 +50,49 @@ function parsePorcelainStatus(output: string): Change[] {
 export default function ChangedFileList({ cwd, sshProfile, onSelectFile, selectedFile, onStatsChange }: ChangedFileListProps) {
   const [changes, setChanges] = useState<Change[]>([]);
 
-  useEffect(() => {
+  const fetchChanges = useCallback(async (silent = false) => {
     if (!cwd || cwd === "~") {
-      setChanges([]);
-      onStatsChange?.({ fileCount: 0 });
-      return;
-    }
-
-    const fetch = async () => {
-      try {
-        let allChanges: Change[];
-
-        if (sshProfile) {
-          const output = await sshExec(sshProfile, `git -C "${cwd}" status --porcelain 2>/dev/null`);
-          allChanges = parsePorcelainStatus(output);
-        } else {
-          const result = await gitStatus(cwd);
-          allChanges = [
-            ...result.staged.map((f) => ({ path: f.path, status: f.status, additions: 0, deletions: 0 })),
-            ...result.unstaged.map((f) => ({ path: f.path, status: f.status, additions: 0, deletions: 0 })),
-            ...result.untracked.map((p) => ({ path: p, status: "added", additions: 0, deletions: 0 })),
-          ];
-        }
-
-        setChanges(allChanges);
-        onStatsChange?.({ fileCount: allChanges.length });
-      } catch {
+      if (!silent) {
         setChanges([]);
         onStatsChange?.({ fileCount: 0 });
       }
-    };
+      return;
+    }
 
-    fetch();
+    try {
+      let allChanges: Change[];
+
+      if (sshProfile) {
+        const output = await sshExec(sshProfile, `git -C "${cwd}" status --porcelain 2>/dev/null`);
+        allChanges = parsePorcelainStatus(output);
+      } else {
+        const result = await gitStatus(cwd);
+        allChanges = [
+          ...result.staged.map((f) => ({ path: f.path, status: f.status, additions: 0, deletions: 0 })),
+          ...result.unstaged.map((f) => ({ path: f.path, status: f.status, additions: 0, deletions: 0 })),
+          ...result.untracked.map((p) => ({ path: p, status: "added", additions: 0, deletions: 0 })),
+        ];
+      }
+
+      setChanges(allChanges);
+      onStatsChange?.({ fileCount: allChanges.length });
+    } catch {
+      if (!silent) {
+        setChanges([]);
+        onStatsChange?.({ fileCount: 0 });
+      }
+    }
   }, [cwd, sshProfile, onStatsChange]);
+
+  useEffect(() => {
+    fetchChanges();
+  }, [fetchChanges]);
+
+  // Polling silencioso para detectar mudancas git
+  useEffect(() => {
+    const interval = setInterval(() => fetchChanges(true), 5000);
+    return () => clearInterval(interval);
+  }, [fetchChanges]);
 
   return (
     <div style={{

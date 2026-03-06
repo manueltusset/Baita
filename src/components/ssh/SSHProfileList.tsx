@@ -84,24 +84,9 @@ function ProfileCard({
         </div>
       </div>
 
-      {/* Auth method badge */}
-      <span style={{
-        fontSize: "9px",
-        padding: "2px 6px",
-        borderRadius: "var(--radius-sm)",
-        background: "var(--glass-bg-elevated)",
-        border: "1px solid var(--glass-border)",
-        color: "var(--color-text-muted)",
-        fontFamily: "var(--font-mono)",
-        fontWeight: 600,
-        flexShrink: 0,
-      }}>
-        {profile.authMethod}
-      </span>
-
-      {/* Actions */}
-      {hovered && (
-        <div style={{ display: "flex", gap: "4px" }}>
+      {/* Auth badge OU botoes de acao (mesmo slot) */}
+      {hovered ? (
+        <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
           <button
             onClick={onConnect}
             style={{
@@ -134,6 +119,20 @@ function ProfileCard({
             x
           </button>
         </div>
+      ) : (
+        <span style={{
+          fontSize: "9px",
+          padding: "2px 6px",
+          borderRadius: "var(--radius-sm)",
+          background: "var(--glass-bg-elevated)",
+          border: "1px solid var(--glass-border)",
+          color: "var(--color-text-muted)",
+          fontFamily: "var(--font-mono)",
+          fontWeight: 600,
+          flexShrink: 0,
+        }}>
+          {profile.authMethod}
+        </span>
       )}
     </div>
   );

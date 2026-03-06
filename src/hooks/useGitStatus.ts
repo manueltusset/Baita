@@ -50,6 +50,8 @@ export function useGitStatus(cwd: string, sshProfile?: SSHProfile | null) {
     };
 
     fetchStatus();
+    const interval = setInterval(fetchStatus, 5000);
+    return () => clearInterval(interval);
   }, [cwd, sshProfile]);
 
   return gitInfo;

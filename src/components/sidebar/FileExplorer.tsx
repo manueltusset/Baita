@@ -60,10 +60,12 @@ export default function FileExplorer() {
     });
   }, []);
 
-  // Carrega diretorio raiz
-  const loadRoot = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // Carrega diretorio raiz (silent = true nao mostra loading state)
+  const loadRoot = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const cwd = effectiveCwd && effectiveCwd !== "~" ? effectiveCwd : "/Users";
 
@@ -83,16 +85,25 @@ export default function FileExplorer() {
 
       const rootName = cwd.split("/").pop() || cwd;
       setTree({ name: rootName, path: cwd, type: "dir", open: true, children });
+      if (!silent) setError(null);
     } catch (e) {
-      const msg = String(e);
-      setError(sshProfile ? `SSH: ${msg}` : msg);
-      setTree({ name: "project", type: "dir", open: true, children: [] });
+      if (!silent) {
+        const msg = String(e);
+        setError(sshProfile ? `SSH: ${msg}` : msg);
+        setTree({ name: "project", type: "dir", open: true, children: [] });
+      }
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, [effectiveCwd, sshProfile, loadRemoteDir]);
 
   useEffect(() => {
     loadRoot();
+  }, [loadRoot]);
+
+  // Polling silencioso para detectar mudancas no filesystem
+  useEffect(() => {
+    const interval = setInterval(() => loadRoot(true), 5000);
+    return () => clearInterval(interval);
   }, [loadRoot]);
 
   // Expandir subdiretorio on-demand
