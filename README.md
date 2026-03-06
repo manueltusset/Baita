@@ -5,22 +5,116 @@
 <h1 align="center">Baita Terminal</h1>
 
 <p align="center">
-  Terminal moderno de alta performance com workspaces, pane splits, file viewer, code review, metricas de sistema e SSH integrado.
+  A modern, high-performance terminal emulator with workspaces, pane splits, file viewer, code review, system metrics and built-in SSH.
+  <br />
+  Built with Tauri v2, React and Rust.
 </p>
 
 <p align="center">
-  <strong>Tauri 2 + React 19 + Rust + SQLite</strong>
+  <img src="https://img.shields.io/badge/version-0.1.0-green" alt="Version 0.1.0" />
+  <img src="https://img.shields.io/badge/Tauri-v2-blue" alt="Tauri v2" />
+  <img src="https://img.shields.io/badge/Rust-2021-orange" alt="Rust" />
+  <img src="https://img.shields.io/badge/React-19-61dafb" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178c6" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
 </p>
 
 ---
 
-## Sobre
+## What is Baita?
 
-Baita Terminal e um emulador de terminal de nova geracao, inspirado no Warp, construido como aplicacao desktop nativa com Tauri 2. Combina a performance do Rust no backend (PTY, storage, git, sysinfo) com uma interface React moderna e responsiva.
+Baita Terminal is a next-generation terminal emulator inspired by Warp, built as a native desktop application with Tauri 2. It combines Rust backend performance (PTY, storage, git, sysinfo) with a modern, responsive React interface.
 
-Cada comando executado gera um "block" independente com metadados (exit code, branch, duracao, CWD), que pode ser recolhido, fixado ou buscado. O historico e persistido em SQLite com compressao zstd e busca full-text (FTS5).
+Every command generates an independent "block" with metadata (exit code, branch, duration, CWD) that can be collapsed, pinned or searched. History is persisted in SQLite with zstd compression and full-text search (FTS5).
 
-## Arquitetura
+## Key Features
+
+### Workspaces & Pane Splits
+- **Multiple workspaces** - Tabs in the TopBar with instant switching
+- **Pane tree** - Horizontal and vertical splits (up to 4 panels)
+- **Internal tabs** - Each pane supports terminal, editor, code review and SSH tabs
+- **Configurable layout** - Default panel count, direction and startup commands
+
+### Block-Based Terminal
+- **Rich metadata** - Exit code, CWD, git branch, duration and line count per block
+- **Pin & collapse** - Pin important blocks and collapse others
+- **Full-text search** - SQLite FTS5 across command history
+- **zstd compression** - Output compressed before persistence
+- **LRU cache** - 30 most recent blocks in memory per tab
+
+### File Explorer
+- **Recursive file tree** - Color-coded icons by extension
+- **CWD sync** - Automatically follows the active terminal via OSC 7
+- **Integrated search** - Filter files by name
+- **SSH support** - Browses remote filesystem when connected
+
+### File Viewer / Editor
+- **Syntax highlighting** - Shiki (same engine as VS Code)
+- **File tabs** - Multiple open files
+- **Read & write** - File operations via Tauri IPC
+
+### Code Review (Git Diff)
+- **Unified diff** - GitHub-style diff visualization
+- **Changed file list** - Status badges (added/modified/deleted)
+- **Native git** - Powered by git2 crate (no CLI dependency)
+- **Auto-refresh** - Silent polling detects changes from terminal commits
+
+### System Metrics
+- **Real-time monitoring** - CPU, memory and disk usage
+- **TopBar badges** - Colored dot + percentage at a glance
+- **Historical charts** - Recharts AreaChart in a dropdown popup
+- **Time range selector** - 5m / 15m / 30m / 1h
+- **System details** - Cores, RAM, swap, disk, uptime
+- **Backend polling** - `sysinfo` crate every 5s (720 points = 1h)
+
+### SSH Manager
+- **Saved profiles** - Per-workspace connection profiles
+- **Inline connection form** - Supports agent, SSH key or password auth
+- **CWD tracking** - OSC 7 injection into remote shell for directory sync
+- **Status indicator** - Active connection badge on workspace tab
+
+### Multi-Theme System
+- **12 built-in themes** - Dracula, Catppuccin (Mocha/Macchiato/Latte), Nord, Tokyo Night, Gruvbox, One Dark, Rose Pine, Solarized Dark, Baita Dark, Baita Light
+- **JS-based theming** - CSS variables injected via `style.setProperty()` at runtime
+- **Persistent selection** - Theme saved to localStorage and applied on boot
+- **Glass morphism** - Backdrop blur adapts to each theme's palette
+
+### TopBar (Glass Pill Island)
+- **Centered glass pill** - Workspace tabs + action buttons + metric badges
+- **Dropdown popups** - Settings, SSH, Metrics (macOS Wi-Fi style)
+- **Active state indicators** - Sidebar and review panel icons highlight when open
+- **Drag region** - `data-tauri-drag-region` for window dragging
+
+### Tab Lifecycle
+- **Active** - Tab in use, React mounted, PTY active
+- **Hibernated** - After 2 min idle, React unmounted, PTY continues with ring buffer (1000 lines)
+- **Suspended** - After 30 min idle, process paused (SIGSTOP)
+- **Auto-restore** - Ring buffer drained on reactivation
+- **Periodic check** - Every 30 seconds
+
+### Automatic Cleanup
+- **Scheduled job** - Runs at configured hour (default: 3 AM)
+- **Output purge** - Blocks older than 7 days (configurable)
+- **Block deletion** - Expired commands after 90 days
+- **Session removal** - Old sessions after 30 days
+- **DB size limit** - Enforced at 500 MB (configurable)
+- **Incremental vacuum** - Automatic space reclamation
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|-------:|
+| `Ctrl+K` | Command palette |
+| `Ctrl+B` | Toggle sidebar |
+| `Ctrl+,` | Open settings dropdown |
+| `Ctrl+T` | New workspace |
+| `Ctrl+W` | Close active pane tab |
+| `Ctrl+S` | Save file in editor |
+| `Ctrl+1-9` | Switch workspaces |
+| `Ctrl+Shift+H` | Split horizontal |
+| `Ctrl+Shift+V` | Split vertical |
+
+## Architecture
 
 ```
 +-----------------------------------------------------------+
@@ -53,123 +147,32 @@ Frontend (React 19)            Backend (Rust/Tauri 2)
                                +---------------------+
 ```
 
-## Stack
+## Tech Stack
 
-| Camada | Tecnologia | Versao |
-|--------|-----------|--------|
-| Framework | Tauri | 2.10 |
-| Frontend | React + TypeScript | 19 / 5.x |
-| Terminal | xterm.js (WebGL2) | 6.x |
-| Estado | Zustand | 5.x |
-| Syntax | Shiki | 4.x |
-| Charts | Recharts | 3.x |
-| Virtual Scroll | TanStack Virtual | 3.x |
-| System Info | sysinfo | 0.35 |
-| PTY | portable-pty | 0.9 |
-| Database | SQLite (WAL) via sqlx | 0.8 |
-| Compressao | zstd | 0.13 |
-| Cache | LRU | 0.12 |
-| Git | git2 (libgit2) | 0.19 |
-| Build | Vite | 7.x |
+| Layer | Technology |
+|-------|-----------:|
+| **Framework** | Tauri v2.10 |
+| **Backend** | Rust (2021 edition) |
+| **Frontend** | React 19, TypeScript 5.x, Vite 7 |
+| **Terminal** | xterm.js 6 (WebGL2) |
+| **State** | Zustand 5 |
+| **Syntax** | Shiki 4 |
+| **Charts** | Recharts 3 |
+| **Virtual Scroll** | TanStack Virtual 3 |
+| **System Info** | sysinfo 0.35 |
+| **PTY** | portable-pty 0.9 |
+| **Database** | SQLite (WAL) via sqlx 0.8 |
+| **Compression** | zstd 0.13 |
+| **Cache** | LRU 0.12 |
+| **Git** | git2 (libgit2) 0.19 |
 
-## Features
-
-### Workspaces e Pane Splits
-- Multiplos workspaces com tabs na TopBar
-- Pane tree com splits horizontais e verticais (ate 4 paineis)
-- Cada pane suporta tabs internas: terminal, editor, code review, SSH
-- Layout padrao configuravel nas settings (numero de paineis, direcao, comandos iniciais)
-
-### Terminal Block-Based
-- Cada comando gera um block com metadados: exit code, CWD, branch git, duracao, contagem de linhas
-- Blocks podem ser fixados (pin), copiados e recolhidos
-- Historico com busca full-text (SQLite FTS5)
-- Output comprimido com zstd para economia de espaco
-- LRU cache de 30 blocks por aba para acesso rapido
-
-### File Explorer
-- Arvore de arquivos recursiva com icones coloridos por extensao
-- Sincronizacao automatica com CWD do terminal (via OSC 7)
-- Busca integrada por nome de arquivo
-
-### File Viewer / Editor
-- Syntax highlighting com Shiki (mesma engine do VS Code)
-- Tabs de arquivos abertos
-- Leitura e escrita de arquivos via Tauri IPC
-
-### Code Review (Git Diff)
-- Visualizacao de diff em formato unified (estilo GitHub)
-- Lista de arquivos alterados com status (added/modified/deleted)
-- Integrado com git2 crate (nao depende de git CLI)
-- Sumario de linhas adicionadas/removidas
-
-### System Metrics
-- Monitoramento em tempo real: CPU, memoria, disco
-- Badges compactos na TopBar (dot colorido + percentual)
-- Dropdown com charts historicos (Recharts AreaChart)
-- Seletor de time range: 5m / 15m / 30m / 1h
-- Detalhes: cores, RAM, swap, disco, uptime
-- Backend via `sysinfo` crate, polling a cada 5s
-
-### SSH Manager
-- Perfis de conexao salvos por workspace
-- Dropdown com lista de profiles, connect/disconnect
-- Dialog de conexao com suporte a agent, chave SSH ou senha
-- Indicador de status na workspace tab
-
-### TopBar (Glass Pill Island)
-- Ilha glass centralizada no topo com pill shape
-- Workspace tabs + action buttons + metric badges
-- Click nos icones abre dropdown popup glass alinhado abaixo (estilo macOS)
-- Dropdowns: Settings, SSH, Metrics
-- `data-tauri-drag-region` para arrastar a janela
-- Always visible (sem hover expand/collapse)
-
-### Tab Lifecycle
-- **Active**: tab em uso, React montado, PTY ativo
-- **Hibernated**: apos 2 min inativo, React desmontado, PTY continua com ring buffer (1000 linhas)
-- **Suspended**: apos 30 min inativo, processo pausado (SIGSTOP)
-- Restauracao automatica com dreno do ring buffer
-- Verificacao periodica a cada 30 segundos
-
-### Cleanup Automatico
-- Job periodico que roda na hora configurada (padrao: 3h)
-- Purga output de blocks antigos (padrao: 7 dias)
-- Deleta blocks expirados (padrao: 90 dias)
-- Remove sessoes antigas (padrao: 30 dias)
-- Enforce de tamanho maximo do banco (padrao: 500MB)
-- Vacuum incremental automatico
-
-### Design System
-- Glass morphism com backdrop blur
-- Tema dark (padrao) e light
-- Accent orange (#ec5b13)
-- Fontes: JetBrains Mono NF (codigo) + Public Sans (display)
-- Animacoes: fadeSlideIn, scaleIn, pulse, shimmer
-- Custom titlebar overlay macOS
-- CSS variables para theming completo
-
-### Atalhos de Teclado
-
-| Atalho | Acao |
-|--------|------|
-| `Ctrl+K` | Command palette |
-| `Ctrl+B` | Toggle sidebar |
-| `Ctrl+,` | Abrir settings dropdown |
-| `Ctrl+T` | Novo workspace |
-| `Ctrl+W` | Fechar tab do pane ativo |
-| `Ctrl+S` | Salvar arquivo no editor |
-| `Ctrl+1-9` | Navegar workspaces |
-| `Ctrl+Shift+H` | Split horizontal |
-| `Ctrl+Shift+V` | Split vertical |
-
-## Estrutura do Projeto
+## Project Structure
 
 ```
 baita/
-  src/                            # Frontend React
-    App.tsx                       # Layout principal
-    components/                   # 31 componentes organizados
+  src/                            # React frontend
+    App.tsx                       # Main layout
+    components/                   # 31 organized components
       nav/                        # TopBar, NavTab, DropdownPopup
       sidebar/                    # Sidebar, FileExplorer, FileTreeNode, ReviewSidebar
       terminal/                   # PaneContainer, SplitHandle
@@ -179,41 +182,40 @@ baita/
       review/                     # CodeReview, DiffView, ChangedFileList
       metrics/                    # MetricsPopup
       settings/                   # SettingsDropdown, RetentionSlider
-      ssh/                        # SSHDropdown, SSHManager, SSHProfileList, SSHConnectDialog
+      ssh/                        # SSHDropdown, SSHProfileList, SSHConnectDialog
       shared/                     # GlassPanel, IconButton, MaterialIcon
-      titlebar/                   # MemoryIndicator, Tab, WindowControls
-    hooks/                        # 9 hooks customizados
-      useTerminal.ts              # Gerencia xterm.js + cache de instancias
-      useSystemMetrics.ts         # Polling de metricas do sistema
-      useKeyboard.ts              # Atalhos de teclado globais
-      useTabLifecycle.ts          # Lifecycle de tabs (hibernate/suspend)
-      useFileTree.ts              # Arvore de arquivos
-      useGitStatus.ts             # Status git do workspace
+    hooks/                        # 9 custom hooks
+      useTerminal.ts              # xterm.js management + instance cache
+      useSystemMetrics.ts         # System metrics polling
+      useKeyboard.ts              # Global keyboard shortcuts
+      useTabLifecycle.ts          # Tab lifecycle (hibernate/suspend)
+      useGitStatus.ts             # Workspace git status
       useShikiHighlighter.ts      # Syntax highlighting
-      useRemoteCwd.ts             # CWD tracking
-      useTauriEvent.ts            # Listener de eventos Tauri
+      useRemoteCwd.ts             # Remote CWD tracking
+      useTauriEvent.ts            # Tauri event listener
     stores/                       # 7 Zustand stores
       workspaceStore.ts           # Workspaces, pane trees, pane tabs
       uiStore.ts                  # Sidebar, settings, commandPalette, review
-      terminalStore.ts            # Registry global de sessoes PTY
-      editorStore.ts              # Registry global de arquivos abertos
-      metricsStore.ts             # Historico de metricas do sistema
-      settingsStore.ts            # Configuracoes persistidas (theme, retention, layout)
-      sshStore.ts                 # Estado do dialog SSH
+      terminalStore.ts            # Global PTY session registry
+      editorStore.ts              # Global open files registry
+      metricsStore.ts             # System metrics history
+      settingsStore.ts            # Persisted settings (theme, retention, layout)
+      sshStore.ts                 # SSH dialog state
     lib/                          # Types, constants, Tauri bridge
-      tauri.ts                    # Wrapper tipado para invoke/listen
-      types.ts                    # Interfaces compartilhadas
-      constants.ts                # Atalhos e constantes
-      paneTree.ts                 # Utilitarios de pane tree
-      ssh.ts                      # Helpers SSH
+      tauri.ts                    # Typed wrapper for invoke/listen
+      types.ts                    # Shared interfaces
+      constants.ts                # Shortcuts and constants
+      themes.ts                   # 12 theme definitions (CSS variable maps)
+      paneTree.ts                 # Pane tree utilities
+      ssh.ts                      # SSH helpers (OSC 7 injection)
     styles/                       # Theme + global CSS
-      theme.css                   # CSS variables (dark + light)
-      global.css                  # Reset, animacoes, classes globais
+      theme.css                   # Structural CSS variables (typography, spacing, radius)
+      global.css                  # Reset, animations, global classes
 
-  src-tauri/                      # Backend Rust
+  src-tauri/                      # Rust backend
     src/
-      lib.rs                      # Setup Tauri + lifecycle + cleanup loops
-      commands/                   # 25 comandos IPC
+      lib.rs                      # Tauri setup + lifecycle + cleanup loops
+      commands/                   # 25 IPC commands
         pty.rs                    # tab_create, tab_close, pty_write, pty_resize,
                                   # pty_save_buffer, pty_get_buffer
         lifecycle.rs              # tab_hibernate, tab_suspend, tab_restore, tab_get_state
@@ -221,96 +223,93 @@ baita/
         git.rs                    # git_status, git_diff, git_diff_file
         settings.rs               # get/set retention, db_stats, cleanup
         ssh.rs                    # ssh_exec, ssh profiles CRUD
-        sysinfo.rs                # get_system_metrics (CPU, RAM, swap, disco, uptime)
-      pty/                        # Gerenciamento de PTY
-        manager.rs                # PtyManager com lifecycle + ring buffer
+        sysinfo.rs                # get_system_metrics (CPU, RAM, swap, disk, uptime)
+      pty/                        # PTY management
+        manager.rs                # PtyManager with lifecycle + ring buffer
         session.rs                # PtySession (portable-pty + OSC 7 env)
-        cwd_tracker.rs            # Parser OSC 7
-      storage/                    # Persistencia
+        cwd_tracker.rs            # OSC 7 parser
+      storage/                    # Persistence
         database.rs               # SQLite WAL + migrations + FTS5
-        models.rs                 # Structs Rust
+        models.rs                 # Rust structs
         cache.rs                  # LRU cache
-      state/                      # Estado global
+      state/                      # Global state
         app_state.rs              # Arc<Mutex<PtyManager>> + Arc<Database>
 ```
 
-## Instalacao
+## IPC & Events
 
-### Pre-requisitos
+### Commands (Frontend → Backend)
 
-- [Node.js](https://nodejs.org/) >= 18
-- [Rust](https://rustup.rs/) (stable)
-- Dependencias do Tauri: veja [prerequisites](https://v2.tauri.app/start/prerequisites/)
+The frontend invokes Rust commands via `@tauri-apps/api/core`:
 
-### Setup
+| Category | Commands |
+|----------|----------|
+| **PTY** | `tab_create`, `tab_close`, `pty_write`, `pty_resize`, `pty_save_buffer`, `pty_get_buffer` |
+| **Lifecycle** | `tab_hibernate`, `tab_suspend`, `tab_restore`, `tab_get_state` |
+| **Filesystem** | `read_directory`, `read_file`, `write_file` |
+| **Git** | `git_status`, `git_diff`, `git_diff_file` |
+| **Settings** | `get_retention_config`, `set_retention_config`, `get_db_stats`, `run_cleanup_now` |
+| **SSH** | `ssh_exec`, `ssh_list_profiles`, `ssh_save_profile`, `ssh_delete_profile` |
+| **System** | `get_system_metrics` |
+
+### Events (Backend → Frontend)
+
+| Event | Description |
+|-------|------------|
+| `pty_output` | Terminal output (batched every 16ms) |
+| `cwd_changed` | Directory change detected via OSC 7 |
+| `tab_state` | Lifecycle state change (hibernated/suspended) |
+
+## Performance
+
+- **IPC batching** - PTY output grouped in 16ms windows (~60fps)
+- **WebGL2 renderer** - xterm.js uses GPU for terminal rendering
+- **SQLite WAL mode** - Concurrent reads and writes without blocking
+- **LRU cache** - 30 most recent blocks in memory per tab
+- **zstd compression** - Block output compressed before persistence
+- **Tab lifecycle** - Inactive tabs progressively release resources
+- **Ring buffer** - 1000 lines in memory during hibernation (zero data loss)
+- **Metrics polling** - sysinfo every 5s with circular history (720 points = 1h)
+- **Optimized PRAGMAs** - cache_size 32MB, mmap 256MB, temp_store MEMORY
+- **Silent refresh** - Background polling without UI flicker
+
+## Getting Started
+
+### Prerequisites
+- [Rust](https://rustup.rs/) (stable toolchain)
+- [Node.js](https://nodejs.org/) (v18+)
+- [Tauri v2 prerequisites](https://v2.tauri.app/start/prerequisites/)
+
+### Development
 
 ```bash
-# Clonar repositorio
 git clone <repo-url> baita
 cd baita
-
-# Instalar dependencias
 npm install
-
-# Rodar em modo desenvolvimento
 npm run tauri dev
 ```
 
-### Build de Producao
+### Build
 
 ```bash
 npm run tauri build
 ```
 
-O binario sera gerado em `src-tauri/target/release/bundle/`.
+Artifacts are written to `src-tauri/target/release/bundle/`.
 
-## Configuracoes
+## Settings
 
-As configuracoes podem ser ajustadas pelo dropdown de settings (`Ctrl+,`):
+Configurable via the settings dropdown (`Ctrl+,`):
 
-| Configuracao | Padrao | Descricao |
-|-------------|--------|-----------|
-| Theme | dark | Tema visual (dark / light) |
-| Output Retention | 7 dias | Tempo antes de purgar output dos blocks |
-| Command Retention | 90 dias | Tempo antes de deletar blocks |
-| Session Retention | 30 dias | Tempo antes de deletar sessoes |
-| Max DB Size | 500 MB | Tamanho maximo do banco SQLite |
-| Default Layout | 1 panel | Numero de paineis e direcao ao criar workspace |
+| Setting | Default | Description |
+|---------|--------:|-----------:|
+| Theme | Baita Dark | Visual theme (12 options) |
+| Output Retention | 7 days | Time before purging block output |
+| Command Retention | 90 days | Time before deleting blocks |
+| Session Retention | 30 days | Time before deleting sessions |
+| Max DB Size | 500 MB | Maximum SQLite database size |
+| Default Layout | 1 panel | Panel count and direction for new workspaces |
 
-## IPC e Eventos
-
-### Comandos (Frontend -> Backend)
-
-O frontend invoca comandos Rust via `@tauri-apps/api/core`:
-
-- **PTY**: `tab_create`, `tab_close`, `pty_write`, `pty_resize`, `pty_save_buffer`, `pty_get_buffer`
-- **Lifecycle**: `tab_hibernate`, `tab_suspend`, `tab_restore`, `tab_get_state`
-- **Filesystem**: `read_directory`, `read_file`, `write_file`
-- **Git**: `git_status`, `git_diff`, `git_diff_file`
-- **Settings**: `get_retention_config`, `set_retention_config`, `get_db_stats`, `run_cleanup_now`
-- **SSH**: `ssh_exec`, `ssh_list_profiles`, `ssh_save_profile`, `ssh_delete_profile`
-- **System**: `get_system_metrics`
-
-### Eventos (Backend -> Frontend)
-
-O backend emite eventos via `tauri::Emitter`:
-
-- `pty_output` - Output do terminal (batched a cada 16ms)
-- `cwd_changed` - Mudanca de diretorio detectada (OSC 7)
-- `tab_state` - Mudanca de estado no lifecycle (hibernated/suspended)
-
-## Performance
-
-- **IPC Batching**: Output do PTY e agrupado em janelas de 16ms (~60fps)
-- **WebGL2 Renderer**: xterm.js usa GPU para renderizacao do terminal
-- **SQLite WAL Mode**: Leituras e escritas concorrentes sem bloqueio
-- **LRU Cache**: 30 blocks mais recentes em memoria por aba
-- **zstd Compression**: Output dos blocks comprimido antes de persistir
-- **Tab Lifecycle**: Tabs inativas liberam recursos progressivamente
-- **Ring Buffer**: 1000 linhas em memoria durante hibernacao (sem perda de dados)
-- **Metrics Polling**: sysinfo a cada 5s com historico circular (720 pontos = 1h)
-- **PRAGMA Otimizados**: cache_size 32MB, mmap 256MB, temp_store MEMORY
-
-## Licenca
+## License
 
 MIT
